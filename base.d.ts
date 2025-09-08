@@ -184,7 +184,7 @@ export type ParseOptions = {
 
 	You can also provide a custom function to transform the value. The function will receive the raw string and should return the desired parsed result (see Example 4).
 
-	NOTE: Array types (`string[]`, `number[]`) are ignored if `arrayFormat` is set to `'none'`. (See Example 5.)
+	NOTE: Array types (`string[]`, `number[]`) are ignored if `arrayFormat` is set to `'none'`.
 
 	@default {}
 
@@ -325,9 +325,10 @@ export type ParsedUrl = {
 /**
 Extract the URL and the query string as an object.
 
-If the `parseFragmentIdentifier` option is `true`, the object will also contain a `fragmentIdentifier` property.
-
 @param url - The URL to parse.
+@returns An object with a `url` and `query` property.
+
+If the `parseFragmentIdentifier` option is `true`, the object will also contain a `fragmentIdentifier` property.
 
 @example
 ```
@@ -536,15 +537,33 @@ export type StringifyOptions = {
 	readonly skipEmptyString?: boolean;
 };
 
+/**
+Supported value types for query string parameters.
+
+Note: `Symbol`, functions, and objects (except arrays) are not supported and will throw an error when stringified.
+*/
 export type Stringifiable = string | boolean | number | bigint | null | undefined; // eslint-disable-line @typescript-eslint/ban-types
 
+/**
+A record of stringifiable values.
+*/
 export type StringifiableRecord = Record<
 string,
 Stringifiable | readonly Stringifiable[]
 >;
 
 /**
-Stringify an object into a query string and sort the keys.
+Stringify an object into a query string and sorting the keys.
+
+@param object - Object to stringify. Supported value types are: `string`, `number`, `bigint`, `boolean`, `null`, `undefined`, and arrays of these types. Other types like `Symbol`, functions, or objects (except arrays) will throw an error.
+
+@example
+```
+import queryString from 'query-string';
+
+queryString.stringify({foo: 'bar', baz: 42, qux: true});
+//=> 'baz=42&foo=bar&qux=true'
+```
 */
 export function stringify(
 	// TODO: Use the below instead when the following TS issues are fixed:
@@ -559,7 +578,13 @@ export function stringify(
 /**
 Extract a query string from a URL that can be passed into `.parse()`.
 
-Note: This behaviour can be changed with the `skipNull` option.
+@example
+```
+import queryString from 'query-string';
+
+queryString.extract('https://foo.bar?foo=bar');
+//=> 'foo=bar'
+```
 */
 export function extract(url: string): string;
 
@@ -579,6 +604,10 @@ export type UrlObject = {
 
 /**
 Stringify an object into a URL with a query string and sorting the keys. The inverse of [`.parseUrl()`](https://github.com/sindresorhus/query-string#parseurlstring-options)
+
+The `options` are the same as for `.stringify()`.
+
+@returns A string with the URL and a query string.
 
 Query items in the `query` property overrides queries in the `url` property.
 

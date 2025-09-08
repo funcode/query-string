@@ -52,6 +52,14 @@ Parse a query string into an object. Leading `?` or `#` are ignored, so you can 
 
 The returned object is created with [`Object.create(null)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create) and thus does not have a `prototype`.
 
+```js
+queryString.parse('?foo=bar');
+//=> {foo: 'bar'}
+
+queryString.parse('#token=secret&name=jhon');
+//=> {token: 'secret', name: 'jhon'}
+```
+
 #### options
 
 Type: `object`
@@ -318,6 +326,8 @@ Parse the value as a boolean type instead of string type if it's a boolean.
 
 Stringify an object into a query string and sorting the keys.
 
+**Supported value types:** `string`, `number`, `bigint`, `boolean`, `null`, `undefined`, and arrays of these types. Other types like `Symbol`, functions, or objects (except arrays) will throw an error.
+
 #### options
 
 Type: `object`
@@ -516,7 +526,10 @@ queryString.stringify({a: '', b: ''}, {
 
 Extract a query string from a URL that can be passed into `.parse()`.
 
-Note: This behaviour can be changed with the `skipNull` option.
+```js
+queryString.extract('https://foo.bar?foo=bar');
+//=> 'foo=bar'
+```
 
 ### .parseUrl(string, options?)
 
