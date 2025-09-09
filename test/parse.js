@@ -162,6 +162,23 @@ test('query strings having pipe separated arrays and format option as `separator
 	}), {foo: ['bar', 'baz']});
 });
 
+test('single value with encoded separator should not be split into array', t => {
+	// Test for issue #336 - encoded separators should not cause array splitting
+	const value = encodeURIComponent('a|b'); // 'a%7Cb'
+	t.deepEqual(queryString.parse(`foo=${value}`, {
+		arrayFormat: 'separator',
+		arrayFormatSeparator: '|',
+	}), {foo: 'a|b'});
+
+	// Multiple values with encoded separators in them
+	const value1 = encodeURIComponent('a|b');
+	const value2 = encodeURIComponent('c|d');
+	t.deepEqual(queryString.parse(`foo=${value1}|${value2}`, {
+		arrayFormat: 'separator',
+		arrayFormatSeparator: '|',
+	}), {foo: ['a|b', 'c|d']});
+});
+
 test('query strings having brackets arrays with null and format option as `bracket`', t => {
 	t.deepEqual(queryString.parse('bar[]&foo[]=a&foo[]&foo[]=', {
 		arrayFormat: 'bracket',
@@ -407,7 +424,7 @@ test('value should not be decoded twice with `arrayFormat` option set as `separa
 test('value separated by encoded comma will not be parsed as array with `arrayFormat` option set to `comma`', t => {
 	const value = '1,2,3';
 	t.deepEqual(queryString.parse(`id=${encodeURIComponent(value)}`, {arrayFormat: 'comma', parseNumbers: true}), {
-		id: [1, 2, 3],
+		id: '1,2,3',
 	});
 });
 
