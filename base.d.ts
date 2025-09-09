@@ -535,6 +535,51 @@ export type StringifyOptions = {
 	```
 	*/
 	readonly skipEmptyString?: boolean;
+
+	/**
+	A function that transforms key-value pairs before stringification.
+
+	Similar to the `replacer` parameter of `JSON.stringify()`, this function is called for each key-value pair and can be used to transform values before they are stringified.
+
+	The function receives the key and value, and should return the transformed value. Returning `undefined` will omit the key-value pair from the resulting query string.
+
+	This is useful for custom serialization of non-primitive types like `Date`:
+
+	@example
+	```
+	import queryString from 'query-string';
+
+	queryString.stringify({
+		date: new Date('2024-01-15T10:30:00Z'),
+		name: 'John'
+	}, {
+		replacer: (key, value) => {
+			if (value instanceof Date) {
+				return value.toISOString();
+			}
+
+			return value;
+		}
+	});
+	//=> 'date=2024-01-15T10%3A30%3A00.000Z&name=John'
+	```
+
+	@example
+	```
+	import queryString from 'query-string';
+
+	// Omit keys with null values using replacer instead of skipNull
+	queryString.stringify({
+		a: 1,
+		b: null,
+		c: 3
+	}, {
+		replacer: (key, value) => value === null ? undefined : value
+	});
+	//=> 'a=1&c=3'
+	```
+	*/
+	readonly replacer?: (key: string, value: unknown) => unknown;
 };
 
 /**

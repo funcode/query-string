@@ -431,3 +431,167 @@ test('array stringify representation with (:list) colon-list-separator with null
 		arrayFormat: 'colon-list-separator',
 	}), 'bar:list=one&bar:list=&foo');
 });
+
+test('replacer option transforms Date objects to ISO strings', t => {
+	const date = new Date('2024-01-15T10:30:00.000Z');
+	t.is(queryString.stringify({
+		name: 'John',
+		created: date,
+	}, {
+		replacer(key, value) {
+			if (value instanceof Date) {
+				return value.toISOString();
+			}
+
+			return value;
+		},
+	}), 'created=2024-01-15T10%3A30%3A00.000Z&name=John');
+});
+
+test('replacer option can omit null values', t => {
+	t.is(queryString.stringify({
+		a: 1,
+		b: null,
+		c: 3,
+	}, {
+		replacer: (key, value) => value === null ? undefined : value,
+	}), 'a=1&c=3');
+});
+
+test('replacer option can transform specific keys', t => {
+	t.is(queryString.stringify({
+		price: 10,
+		quantity: 5,
+	}, {
+		replacer(key, value) {
+			if (key === 'price' && typeof value === 'number') {
+				return `$${value}`;
+			}
+
+			return value;
+		},
+	}), 'price=%2410&quantity=5');
+});
+
+test('replacer option can filter array elements', t => {
+	t.is(queryString.stringify({
+		tags: ['one', 'two', 'three'],
+	}, {
+		replacer(key, value) {
+			if (key.startsWith('tags[') && value === 'two') {
+				return undefined; // Skip 'two'
+			}
+
+			return value;
+		},
+	}), 'tags=one&tags=three');
+});
+
+test('replacer option returning undefined for all values results in empty string', t => {
+	t.is(queryString.stringify({
+		a: 1,
+		b: 2,
+	}, {
+		replacer: () => undefined,
+	}), '');
+});
+
+test('replacer option can transform array to string', t => {
+	t.is(queryString.stringify({
+		tags: ['one', 'two', 'three'],
+	}, {
+		replacer(key, value) {
+			if (Array.isArray(value)) {
+				return value.join('|');
+			}
+
+			return value;
+		},
+	}), 'tags=one%7Ctwo%7Cthree');
+});
+
+test('replacer option works with bracket array format', t => {
+	t.is(queryString.stringify({
+		items: [1, 2, 3],
+	}, {
+		arrayFormat: 'bracket',
+		replacer(key, value) {
+			if (typeof value === 'number') {
+				return value * 10;
+			}
+
+			return value;
+		},
+	}), 'items[]=10&items[]=20&items[]=30');
+});
+
+test('replacer option handles edge cases correctly', t => {
+	t.is(queryString.stringify({
+		undefinedValue: undefined,
+		nullValue: null,
+		empty: '',
+		zero: 0,
+		false: false,
+	}, {
+		replacer: (key, value) => value,
+	}), 'empty=&false=false&nullValue&zero=0');
+});
+
+test('replacer option can handle Symbol without crashing', t => {
+	const symbol = Symbol('test');
+	t.is(queryString.stringify({
+		a: 1,
+		b: symbol,
+	}, {
+		replacer(key, value) {
+			if (typeof value === 'symbol') {
+				return 'symbol-value';
+			}
+
+			return value;
+		},
+	}), 'a=1&b=symbol-value');
+});
+
+test('replacer option works with comma array format', t => {
+	t.is(queryString.stringify({
+		colors: ['red', 'green', 'blue'],
+	}, {
+		arrayFormat: 'comma',
+		replacer(key, value) {
+			if (key.startsWith('colors[') && value === 'green') {
+				return 'GREEN';
+			}
+
+			return value;
+		},
+	}), 'colors=red,GREEN,blue');
+});
+
+test('replacer option is called with correct keys for index array format', t => {
+	const replacerKeys = [];
+	queryString.stringify({
+		items: ['x', 'y'],
+	}, {
+		arrayFormat: 'index',
+		replacer(key, value) {
+			replacerKeys.push(key);
+			return value;
+		},
+	});
+	t.deepEqual(replacerKeys, ['items', 'items[0]', 'items[1]']);
+});
+
+test('replacer option can transform objects to JSON strings', t => {
+	t.is(queryString.stringify({
+		data: {nested: 'value'},
+	}, {
+		replacer(key, value) {
+			if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+				return JSON.stringify(value);
+			}
+
+			return value;
+		},
+	}), 'data=%7B%22nested%22%3A%22value%22%7D');
+});

@@ -463,7 +463,17 @@ export function stringify(object, options) {
 	}
 
 	return keys.map(key => {
-		const value = object[key];
+		let value = object[key];
+
+		// Apply replacer function if provided
+		if (options.replacer) {
+			value = options.replacer(key, value);
+
+			// If replacer returns undefined, skip this key
+			if (value === undefined) {
+				return '';
+			}
+		}
 
 		if (value === undefined) {
 			return '';
@@ -478,7 +488,16 @@ export function stringify(object, options) {
 				return encode(key, options) + '[]';
 			}
 
-			return value
+			// Apply replacer to array elements if provided
+			// Note: We don't re-apply replacer to the array itself, only to elements
+			let processedArray = value;
+			if (options.replacer) {
+				processedArray = value.map((item, index) =>
+					options.replacer(`${key}[${index}]`, item),
+				).filter(item => item !== undefined);
+			}
+
+			return processedArray
 				.reduce(formatter(key), [])
 				.join('&');
 		}

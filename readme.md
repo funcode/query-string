@@ -522,6 +522,50 @@ queryString.stringify({a: '', b: ''}, {
 //=> ''
 ```
 
+##### replacer
+
+A function that transforms key-value pairs before stringification.
+
+Type: `function`\
+Default: `undefined`
+
+Similar to the `replacer` parameter of `JSON.stringify()`, this function is called for each key-value pair and can be used to transform values before they are stringified. The function receives the key and value, and should return the transformed value. Returning `undefined` will omit the key-value pair from the resulting query string.
+
+This is useful for custom serialization of non-primitive types like `Date`:
+
+```js
+import queryString from 'query-string';
+
+queryString.stringify({
+	date: new Date('2024-01-15T10:30:00Z'),
+	name: 'John'
+}, {
+	replacer: (key, value) => {
+		if (value instanceof Date) {
+			return value.toISOString();
+		}
+
+		return value;
+	}
+});
+//=> 'date=2024-01-15T10%3A30%3A00.000Z&name=John'
+```
+
+You can also use it to filter out keys:
+
+```js
+import queryString from 'query-string';
+
+queryString.stringify({
+	a: 1,
+	b: null,
+	c: 3
+}, {
+	replacer: (key, value) => value === null ? undefined : value
+});
+//=> 'a=1&c=3'
+```
+
 ### .extract(string)
 
 Extract a query string from a URL that can be passed into `.parse()`.
