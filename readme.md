@@ -201,13 +201,11 @@ Parse the value as a boolean type instead of string type if it's a boolean.
 Type: `object`\
 Default: `{}`
 
-
 Specifies a schema for parsing query values with explicit type declarations. When defined, the types provided here take precedence over general parsing options such as `parseNumbers`, `parseBooleans`, and `arrayFormat`.
 
 Use this option to explicitly define the type of a specific parameter—particularly useful in cases where the type might otherwise be ambiguous (e.g., phone numbers or IDs).
 
-You can also provide a custom function to transform the value. The function will receive the raw string and should return the desired parsed result.
-
+You can also provide a custom function to transform the value. The function will receive the raw string and should return the desired parsed result. When used with array formats (like `comma`, `separator`, `bracket`, etc.), the function is applied to each array element individually.
 
 Supported Types:
 
@@ -281,17 +279,26 @@ queryString.parse('?age=20&items=1%2C2%2C3', {
 //=> {age: '20', items: [1, 2, 3]}
 ```
 
-- `'Function'`: Provide a custom function as the parameter type. The parameter's value will equal the function's return value.
+- `'Function'`: Provide a custom function as the parameter type. The parameter's value will equal the function's return value. When used with array formats (like `comma`, `separator`, `bracket`, etc.), the function is applied to each array element individually.
 
 ```js
 import queryString from 'query-string';
 
 queryString.parse('?age=20&id=01234&zipcode=90210', {
 	types: {
-		age: (value) => value * 2,
+		age: value => value * 2,
 	}
 });
 //=> {age: 40, id: '01234', zipcode: '90210'}
+
+// With arrays, the function is applied to each element
+queryString.parse('?scores=10,20,30', {
+	arrayFormat: 'comma',
+	types: {
+		scores: value => Number(value) * 2,
+	}
+});
+//=> {scores: [20, 40, 60]}
 ```
 
 NOTE: Array types (`string[]`, `number[]`) are ignored if `arrayFormat` is set to `'none'`.
@@ -314,7 +321,7 @@ import queryString from 'query-string';
 
 queryString.parse('?age=20&id=01234&zipcode=90210', {
 	types: {
-		age: (value) => value * 2,
+		age: value => value * 2,
 	}
 });
 //=> {age: 40, id: '01234', zipcode: '90210'}

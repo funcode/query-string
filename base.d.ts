@@ -182,14 +182,14 @@ export type ParseOptions = {
 
 	Use this option to explicitly define the type of a specific parameter—particularly useful in cases where the type might otherwise be ambiguous (e.g., phone numbers or IDs).
 
-	You can also provide a custom function to transform the value. The function will receive the raw string and should return the desired parsed result (see Example 4).
+	You can also provide a custom function to transform the value. The function will receive the raw string and should return the desired parsed result. When used with array formats (like `comma`, `separator`, `bracket`, etc.), the function is applied to each array element individually.
 
 	NOTE: Array types (`string[]`, `number[]`) are ignored if `arrayFormat` is set to `'none'`.
 
 	@default {}
 
 	@example
-	Parse `phoneNumber` as a string, overriding the `parseNumber` option:
+	Parse `phoneNumber` as a string, overriding the `parseNumbers` option:
 	```
 	import queryString from 'query-string';
 
@@ -203,12 +203,12 @@ export type ParseOptions = {
 	```
 
 	@example
-	Parse `items` as an array of strings, overriding the `parseNumber` option:
+	Parse `items` as an array of strings, overriding the `parseNumbers` option:
 	```
 	import queryString from 'query-string';
 
 	queryString.parse('?age=20&items=1%2C2%2C3', {
-		parseNumber: true,
+		parseNumbers: true,
 		types: {
 			items: 'string[]',
 		}
@@ -236,10 +236,25 @@ export type ParseOptions = {
 
 	queryString.parse('?age=20&id=01234&zipcode=90210', {
 		types: {
-			age: (value) => value * 2,
+			age: value => value * 2,
 		}
 	});
 	//=> {age: 40, id: '01234', zipcode: '90210'}
+	```
+
+	@example
+	Custom functions are applied to each array element when using array formats:
+	```
+	import queryString from 'query-string';
+
+	// With arrays, the function is applied to each element
+	queryString.parse('?scores=10,20,30', {
+		arrayFormat: 'comma',
+		types: {
+			scores: value => Number(value) * 2,
+		}
+	});
+	//=> {scores: [20, 40, 60]}
 	```
 
 	@example
@@ -267,7 +282,7 @@ export type ParseOptions = {
 			items: 'string[]',
 			price: 'string',
 			numbers: 'number[]',
-			double: (value) => value * 2,
+			double: value => value * 2,
 			number: 'number',
 		},
 	});

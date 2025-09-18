@@ -403,7 +403,8 @@ export function parse(query, options) {
 	for (const [key, value] of Object.entries(returnValue)) {
 		if (typeof value === 'object' && value !== null && options.types[key] !== 'string') {
 			for (const [key2, value2] of Object.entries(value)) {
-				const type = options.types[key] ? options.types[key].replace('[]', '') : undefined;
+				const typeOption = options.types[key];
+				const type = typeof typeOption === 'function' ? typeOption : (typeOption ? typeOption.replace('[]', '') : undefined);
 				value[key2] = parseValue(value2, options, type);
 			}
 		} else if (typeof value === 'object' && value !== null && options.types[key] === 'string') {

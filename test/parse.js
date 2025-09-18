@@ -625,3 +625,57 @@ test('types option: boolean type accepts an empty string as true', t => {
 		},
 	);
 });
+
+test('types option: function types with arrays apply to each element', t => {
+	// Test with comma format
+	t.deepEqual(queryString.parse('scores=10,20,30', {
+		arrayFormat: 'comma',
+		types: {
+			scores: value => Number(value) * 2,
+		},
+	}), {
+		scores: [20, 40, 60],
+	});
+
+	// Test with bracket format
+	t.deepEqual(queryString.parse('scores[]=5&scores[]=10&scores[]=15', {
+		arrayFormat: 'bracket',
+		types: {
+			scores: value => Number(value) + 10,
+		},
+	}), {
+		scores: [15, 20, 25],
+	});
+
+	// Test with separator format
+	t.deepEqual(queryString.parse('scores=1|2|3', {
+		arrayFormat: 'separator',
+		arrayFormatSeparator: '|',
+		types: {
+			scores: value => `item-${value}`,
+		},
+	}), {
+		scores: ['item-1', 'item-2', 'item-3'],
+	});
+
+	// Test function with single value still works
+	t.deepEqual(queryString.parse('score=42', {
+		types: {
+			score: value => Number(value) / 2,
+		},
+	}), {
+		score: 21,
+	});
+
+	// Test mixed types in same query
+	t.deepEqual(queryString.parse('nums=1,2,3&single=10', {
+		arrayFormat: 'comma',
+		types: {
+			nums: value => Number(value) * 3,
+			single: value => Number(value) * 2,
+		},
+	}), {
+		nums: [3, 6, 9],
+		single: 20,
+	});
+});
