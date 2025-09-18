@@ -13,6 +13,9 @@ npm install query-string
 
 For browser usage, this package targets the latest version of Chrome, Firefox, and Safari.
 
+> [!TIP]
+> Consider using [`URLSearchParams`](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams) for simple use cases. It's a native browser API that handles basic query string operations.
+
 ## Usage
 
 ```js
